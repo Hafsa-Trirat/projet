@@ -78,6 +78,10 @@ const userSchema = mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
     },
+    balckListedTokens: {
+        type: [String],
+        default: []
+    }
 
 
 
@@ -92,7 +96,7 @@ userSchema.pre('save', async function (next) {
 })
 userSchema.methods.generateJWT = function () {
     return jwt.sign(
-        { userId: this._id },
+        { user: this },
         process.env.JWT_SECRET,
         { expiresIn: '30d' }
     )

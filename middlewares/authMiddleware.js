@@ -39,25 +39,33 @@ console.log("hello")
         next()
       }
     }*/
-
-
 //module.exports = {authMiddleware,authRole};
+
+
 const jwt = require('jsonwebtoken');
+const User = require('../models/User');
 
 const authMiddleware = (req, res, next) => {
   // Get the token from the Authorization header
   const token = req.headers.authorization?.split(' ')[1];
-
+  console.log(token)
   if (!token) {
     return res.status(401).json({ message: 'Authorization failed: Token missing' });
   }
 
   try {
     // Verify the token using the secret key
-    const decoded = jwt.verify(token, 'secret_key');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
+    console.log(decoded)
     // Add the user ID from the token to the request object
     req.user = decoded.user;
+
+    const isTokenBlacklisted = User.balckListedTokens?.includes(token);
+
+    if (isTokenBlacklisted) {
+      return res.status(401).json({ message: 'Authorization failed: Token blacklisted' });
+    }
 
     // Call the next middleware or route handler
     next();

@@ -189,10 +189,13 @@ exports.ResetPassword = asyncHandler(async (req, res, next) => {
 // @desc     Authenticate user 
 // @route    POST /api/users/LogIn
 // @access   Public
+
 exports.LogIn = async (req, res, next) => {
   const { email, password } = req.body
   const user = await User.findOne({ email })
   const matchPassword = await bcrypt.compare(password, user.password);
+
+
   if (user && (matchPassword)) {
     res.status(200)
     res.json({
@@ -211,24 +214,57 @@ exports.LogIn = async (req, res, next) => {
     next(new ErrorResponse('Invalid email or password', 400))
   }
 }
-exports.LogOut = async (req, res) => {
-  // Remove the token from local storage
-  localStorage.removeItem('token');
 
+
+
+
+
+
+
+
+/*
+exports.LogOut = async (req, res) => {
+
+
+  const token = req.headers.authorization.split(' ')[1];
+
+  req.user.balckListedTokens.push(token)
+  req.user.save()
+
+};*/
+
+
+exports.LogOut = async (req, res) => {
+  try {
+    const token = req.headers.authorization.split(' ')[1]
+    console.log(token)
+    req.user.balckListedTokens.push(token)
+    console.log(req.user)
+    await req.user.save()
+    return res.status(200).json({ message: 'logout successfully' })
+  } catch {
+    return res.status(500).json({ message: 'logout not successfully' })
+  }
+}
+
+
+/*
+exports.LogOut = async (req, res) => {
   if (req.headers && req.headers.authorization) {
     const token = req.headers.authorization.split(' ')[1];
-    if (!token) {
-      return res
-        .status(401)
-        .json({ success: false, message: 'Authorization fail!' });
-    }
 
+    
+    await User.findByIdAndUpdate(req.user._id, { $push: { blacklistedTokens: token } });
+
+    
     const newTokens = req.user.tokens.filter(t => t !== token);
-
     await User.findByIdAndUpdate(req.user._id, { tokens: newTokens });
-    res.json({ success: true, message: 'Sign out successfully!' });
+
+    res.json({ success: true, message: 'log out successfully!' });
+  } else {
+    res.status(401).json({ success: false, message: 'Unauthorized' });
   }
-};
+};*/
 
 
 
